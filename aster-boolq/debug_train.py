@@ -1,6 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
 import os
 import torch
 import torch.distributed as dist
@@ -20,7 +17,6 @@ from utils import LayerPathTracker, AverageMeter, TemperatureScheduler, setup_lo
 
 
 def save_simple_checkpoint(model, optimizer, epoch, best_acc=0, filename='checkpoint.pt'):
-    """简单保存检查点，避免FSDP复杂性"""
     if dist.get_rank() == 0:
         state = {
             'epoch': epoch,
@@ -38,7 +34,6 @@ def save_simple_checkpoint(model, optimizer, epoch, best_acc=0, filename='checkp
 
 def train_one_epoch(student_model, teacher_model, train_loader, criterion, optimizer,
                     scaler, epoch, device, max_skip_distance=2):
-    """使用混合精度训练一个epoch"""
     student_model.train()
     teacher_model.eval()
 
@@ -51,7 +46,6 @@ def train_one_epoch(student_model, teacher_model, train_loader, criterion, optim
     # 使用tqdm显示进度条
     pbar = tqdm(train_loader, desc=f"Epoch {epoch}")
 
-    # 梯度累积设置
     accumulated_steps = 0
     optimizer.zero_grad()
 
@@ -420,4 +414,5 @@ if __name__ == "__main__":
     os.makedirs(Config.OUTPUT_DIR, exist_ok=True)
 
     # 运行主函数
+
     main()
