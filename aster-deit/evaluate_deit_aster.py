@@ -54,9 +54,7 @@ def predict_greedy(model, scorer, adapter, images):
 
 
 def run_evaluation(args):
-    """
-    Main function to run the evaluation process.
-    """
+
     print("--- Starting ASTER-DeiT Evaluation ---")
 
     # 1. Load Model, Processor, and ASTER Components
@@ -90,8 +88,6 @@ def run_evaluation(args):
     scorer.eval()
     adapter.eval()
 
-    # 2. Load Dataset
-    # We'll evaluate on the test split we created
     eval_dataset_path = config.TEST_DATA_PATH
     print(f"Loading evaluation data from: {eval_dataset_path}")
     try:
@@ -100,7 +96,6 @@ def run_evaluation(args):
         print(f"ERROR: Evaluation data not found at {eval_dataset_path}")
         return
 
-    # IMPORTANT: Batch size must be 1 for greedy per-sample evaluation
     eval_dataloader = DataLoader(eval_dataset, batch_size=1, shuffle=False, num_workers=4)
 
     # 3. Run Evaluation Loop
@@ -152,4 +147,5 @@ if __name__ == "__main__":
         help="Full path to the saved checkpoint file. If not provided, uses the default from config.py."
     )
     args = parser.parse_args()
+
     run_evaluation(args)
