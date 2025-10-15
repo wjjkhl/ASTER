@@ -1,5 +1,4 @@
-# /aster-bert/bert_trainer.py (Corrected for variable name clash)
-
+# /aster-bert/bert_trainer.py
 import torch
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
@@ -216,4 +215,5 @@ class ASTERTrainerBERT:
         checkpoint = {'epoch': epoch, 'scorer_state_dict': scorer_state_dict, 'adapter_state_dict': adapter_state_dict,
                       'optimizer_state_dict': self.optimizer.state_dict()}
         torch.save(checkpoint, checkpoint_path)
+
         print(f"Saved checkpoint for epoch {epoch + 1} to {checkpoint_path}")
