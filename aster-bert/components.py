@@ -1,10 +1,8 @@
 # /aster-bert/components.py
-# NO CHANGES NEEDED. This file is model-agnostic.
 
 import torch
 import torch.nn as nn
-# Import from the new config file for consistency if running standalone tests,
-# but for the project, the DEVICE will be passed or sourced from the main config.
+
 try:
     from config_bert import DEVICE
 except ImportError:
@@ -12,12 +10,6 @@ except ImportError:
 
 
 class DynamicAdapter(nn.Module):
-    """
-    A lightweight dynamic adapter that conditions its transformation on the
-    current and next layer indices. It is initialized with the same dtype as the base model.
-    NO CHANGES NEEDED from the Llama/DeiT version.
-    """
-
     def __init__(self, hidden_dim: int, bottleneck_dim: int, num_layers: int, dtype: torch.dtype):
         super().__init__()
         self.layer_embedding = nn.Embedding(
@@ -53,13 +45,6 @@ class DynamicAdapter(nn.Module):
 
 
 class ScoringModel(nn.Module):
-    """
-    A lightweight model to score potential layer skips (our policy network pi_theta).
-    It is initialized with the same dtype as the base model.
-    NO CHANGES NEEDED from the Llama/DeiT version. The input h_cls (for [CLS] token)
-    is a standard feature in both DeiT and BERT.
-    """
-
     def __init__(self, hidden_dim: int, scorer_hidden_dim: int, num_layers: int, dtype: torch.dtype):
         super().__init__()
         embedding_dim_scorer = hidden_dim // 4
@@ -87,3 +72,4 @@ class ScoringModel(nn.Module):
             score = self.scorer_mlp(mlp_input)
             scores.append(score)
         return torch.cat(scores, dim=-1)
+
