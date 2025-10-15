@@ -1,4 +1,4 @@
-# /aster-bert/train_bert.py (Corrected call to trainer)
+# /aster-bert/train_bert.py
 
 import torch
 import os
@@ -30,11 +30,9 @@ def main(args):
     set_seed(config.SEED)
     print("--- ASTER-DistilBERT Training Script ---")
 
-    # 1. Load Base Model and Tokenizer
     print("Loading base DistilBERT model and tokenizer...")
     model, tokenizer = load_model_and_tokenizer()
 
-    # 2. Load and Preprocess Dataset
     print(f"Loading dataset {config.DATASET_NAME}/{config.DATASET_CONFIG} from HF Hub...")
     try:
         raw_datasets = load_dataset(config.DATASET_NAME, config.DATASET_CONFIG)
@@ -60,7 +58,6 @@ def main(args):
     train_dataloader = DataLoader(train_dataset, shuffle=True, batch_size=config.BATCH_SIZE)
     print("Dataset processed and DataLoader created.")
 
-    # 3. Initialize ASTER Components
     print("Initializing ASTER components (Scorer and Adapter)...")
     hidden_dim = model.config.hidden_size
     # [MODIFIED] Get num_layers from the DistilBERT transformer structure.
@@ -71,10 +68,10 @@ def main(args):
     scorer = ScoringModel(hidden_dim, config.SCORER_HIDDEN_DIM, num_layers, model_dtype).to(config.DEVICE)
     adapter = DynamicAdapter(hidden_dim, config.ADAPTER_BOTTLENECK_DIM, num_layers, model_dtype).to(config.DEVICE)
 
-    # 4. Initialize Optimizer
+ 
     optimizer = AdamW(list(scorer.parameters()) + list(adapter.parameters()), lr=config.LEARNING_RATE)
 
-    # 5. Resume from Checkpoint if specified
+
     start_epoch = 0
     checkpoint_path = os.path.join(config.CHECKPOINT_DIR, "aster_bert_checkpoint.pt")
     if args.resume and os.path.exists(checkpoint_path):
@@ -88,7 +85,6 @@ def main(args):
     elif args.resume:
         print(f"WARNING: --resume specified, but no checkpoint found at {checkpoint_path}.")
 
-    # 6. Setup and Run Trainer
     print("Setting up ASTER-DistilBERT trainer...")
     aster_trainer = ASTERTrainerBERT(model, scorer, adapter, optimizer)
 
@@ -102,4 +98,5 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Train the ASTER framework on BERT.")
     parser.add_argument("--resume", action="store_true", help="Resume training from the last saved checkpoint.")
     args = parser.parse_args()
+
     main(args)
