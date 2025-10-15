@@ -6,14 +6,11 @@ from sklearn.model_selection import train_test_split
 import json
 import sys
 
-# Provided paths
 VAL_DIR = '/cephfs/shared/wjj/nips/imagenet/val'
 CLASSES_PY_PATH = '/cephfs/shared/wjj/nips/Vitlast/classes.py'
-OUTPUT_DIR = './data_splits'  # Output directory for the splits
-
+OUTPUT_DIR = './data_splits'  
 
 def load_module_from_file(file_path, module_name):
-    """Loads a Python module from a given file path."""
     import importlib.util
     spec = importlib.util.spec_from_file_location(module_name, file_path)
     if spec is None:
@@ -25,13 +22,8 @@ def load_module_from_file(file_path, module_name):
 
 
 def create_dataset_splits():
-    """
-    Scans the ImageNet validation directory, maps files to labels,
-    and creates 80/10/10 splits for train/val/test.
-    """
     print("--- Starting ImageNet Split Creation ---")
 
-    # --- 1. Load Class Mappings ---
     try:
         classes_module = load_module_from_file(CLASSES_PY_PATH, "imagenet_classes")
         # IMAGENET2012_CLASSES is a dict like {'n01440764': ['tench', 'Tinca tinca'], ...}
@@ -41,7 +33,6 @@ def create_dataset_splits():
         print(f"[FATAL ERROR] Could not load or parse the classes.py file. Error: {e}")
         return
 
-    # --- 2. Scan Directory and Create DataFrame ---
     image_files = sorted([f for f in os.listdir(VAL_DIR) if f.lower().endswith('.jpeg')])
     print(f"Found {len(image_files)} total images in {VAL_DIR}")
 
@@ -63,7 +54,6 @@ def create_dataset_splits():
     df = pd.DataFrame(samples)
     print(f"Created initial DataFrame with {len(df)} samples.")
 
-    # --- 3. Create Splits ---
     # 80% train, 20% temp (for val/test)
     train_df, temp_df = train_test_split(df, test_size=0.2, random_state=42, stratify=df['label'])
     # Split temp 50/50 to get 10% val, 10% test
@@ -74,7 +64,6 @@ def create_dataset_splits():
     print(f"  Validation set: {len(val_df)} samples")
     print(f"  Test set:       {len(test_df)} samples")
 
-    # --- 4. Save to CSV ---
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     train_path = os.path.join(OUTPUT_DIR, 'train.csv')
     val_path = os.path.join(OUTPUT_DIR, 'val.csv')
@@ -92,4 +81,5 @@ def create_dataset_splits():
 
 
 if __name__ == '__main__':
+
     create_dataset_splits()
