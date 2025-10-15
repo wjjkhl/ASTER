@@ -25,8 +25,6 @@ def load_model_and_processor():
     ).to(device)
     model.eval()  # Base model is frozen and used for feature extraction
 
-    # 2. Create Image Transform using `timm`
-    # This ensures the preprocessing matches the model's original training
     print(f"Creating data transforms using 'timm' recipe for '{config.TIMM_MODEL_NAME}'")
     timm_model_for_cfg = timm.create_model(config.TIMM_MODEL_NAME, pretrained=False)
     timm_config = timm_model_for_cfg.default_cfg
@@ -40,5 +38,6 @@ def load_model_and_processor():
         crop_pct=timm_config['crop_pct'],
     )
     print("Model and image transform loaded successfully.")
+
 
     return model, transform
