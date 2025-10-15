@@ -6,11 +6,6 @@ from config import DEVICE  # Keep this import
 
 
 class DynamicAdapter(nn.Module):
-    """
-    A lightweight dynamic adapter that conditions its transformation on the
-    current and next layer indices. It is initialized with the same dtype as the base model.
-    NO CHANGES NEEDED from the Llama version.
-    """
 
     def __init__(self, hidden_dim: int, bottleneck_dim: int, num_layers: int, dtype: torch.dtype):
         super().__init__()
@@ -46,11 +41,6 @@ class DynamicAdapter(nn.Module):
 
 
 class ScoringModel(nn.Module):
-    """
-    A lightweight model to score potential layer skips (our policy network pi_theta).
-    It is initialized with the same dtype as the base model.
-    NO CHANGES NEEDED from the Llama version.
-    """
 
     def __init__(self, hidden_dim: int, scorer_hidden_dim: int, num_layers: int, dtype: torch.dtype):
         super().__init__()
@@ -78,4 +68,5 @@ class ScoringModel(nn.Module):
             mlp_input = torch.cat([h_cls, l_curr_emb, l_cand_emb], dim=-1)
             score = self.scorer_mlp(mlp_input)
             scores.append(score)
+
         return torch.cat(scores, dim=-1)
