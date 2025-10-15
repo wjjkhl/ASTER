@@ -29,7 +29,6 @@ def set_seed(seed):
 
 
 def predict_greedy(model, scorer, adapter, input_ids, attention_mask):
-    # [MODIFIED] Get num_layers from the DistilBERT transformer structure.
     num_layers = len(model.distilbert.transformer.layer)
     with torch.no_grad():
         # [MODIFIED] Use model.distilbert.embeddings for DistilBERT.
@@ -39,7 +38,6 @@ def predict_greedy(model, scorer, adapter, input_ids, attention_mask):
 
         while l_curr < num_layers - 1:
             executed_layers_count += 1
-            # Note: DistilBERT layers internally handle the attention mask.
             student_hidden_state = model.distilbert.transformer.layer[l_curr](student_hidden_state, attn_mask=attention_mask)[0]
             cls_state = student_hidden_state[:, 0, :]
 
@@ -165,4 +163,5 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Evaluate a trained ASTER-BERT model.")
     parser.add_argument("--checkpoint_path", type=str, default=None, help="Full path to the saved checkpoint file.")
     args = parser.parse_args()
+
     run_evaluation(args)
