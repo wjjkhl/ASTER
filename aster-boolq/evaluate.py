@@ -250,7 +250,7 @@ def main():
     import argparse
     parser = argparse.ArgumentParser(description="Evaluate Dynamic Layer Skipping Model")
     parser.add_argument('--checkpoint_path', type=str,
-                        default='/cephfs/shared/wjj/ICLR/LLAMAtest/dynamic_llama_output/checkpoint_epoch50.pth.tar',
+                        default='/cephfs/shared/wjj/ICLR/LLAMAtest/dynamic_llama_output/checkpoint_epoch19.pth.tar',
                         help='Path to trained student model checkpoint')
     parser.add_argument('--true_skipping', action='store_true', default=True,
                         help='Enable true layer skipping during evaluation')
