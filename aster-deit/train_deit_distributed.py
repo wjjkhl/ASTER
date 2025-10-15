@@ -109,12 +109,10 @@ if __name__ == "__main__":
     world_size = torch.cuda.device_count()
     if world_size < 2:
         print("Distributed training requires at least 2 GPUs. Running on a single GPU.")
-        # You can optionally fall back to single GPU training or just exit.
-        # For simplicity, we will proceed assuming world_size >= 2 for spawn.
-        # To run on a single GPU, use train_deit.py instead.
         if world_size == 1:
             print("Please use train_deit.py for single-GPU training.")
         exit()
     else:
         print(f"Found {world_size} GPUs. Starting distributed training...")
+
         mp.spawn(main_process, args=(world_size, args), nprocs=world_size, join=True)
