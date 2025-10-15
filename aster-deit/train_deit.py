@@ -12,7 +12,6 @@ from deit_trainer import ASTERTrainerDeiT
 
 
 def main(args):
-    """Main entry point for training the ASTER-DeiT framework."""
     print("--- ASTER-DeiT Training Script ---")
 
     # 1. Load Base Model and Image Transform
@@ -23,10 +22,8 @@ def main(args):
     print("Initializing ASTER components (Scorer and Adapter)...")
     hidden_dim = model.config.hidden_size
 
-    # --- FIX IS HERE ---
-    # The correct way to access the encoder layers in the Hugging Face model
     num_layers = len(model.vit.encoder.layer)
-    # --- END FIX ---
+
 
     model_dtype = next(model.parameters()).dtype
     print(f"Base model dtype: {model_dtype}, hidden_dim: {hidden_dim}, num_layers: {num_layers}")
@@ -34,13 +31,11 @@ def main(args):
     scorer = ScoringModel(hidden_dim, config.SCORER_HIDDEN_DIM, num_layers, model_dtype).to(config.DEVICE)
     adapter = DynamicAdapter(hidden_dim, config.ADAPTER_BOTTLENECK_DIM, num_layers, model_dtype).to(config.DEVICE)
 
-    # 3. Initialize Optimizer
     optimizer = AdamW(
         list(scorer.parameters()) + list(adapter.parameters()),
         lr=config.LEARNING_RATE
     )
 
-    # 4. Resume from Checkpoint if specified
     start_epoch = 0
     checkpoint_path = os.path.join(config.CHECKPOINT_DIR, "aster_deit_checkpoint.pt")
 
@@ -55,7 +50,6 @@ def main(args):
     elif args.resume:
         print(f"WARNING: --resume specified, but no checkpoint found at {checkpoint_path}.")
 
-    # 5. Setup and Run Trainer
     print("Setting up ASTER-DeiT trainer...")
     aster_trainer = ASTERTrainerDeiT(model, image_transform, scorer, adapter, optimizer, config)
 
@@ -73,4 +67,5 @@ if __name__ == "__main__":
         help="Resume training from the last saved checkpoint."
     )
     args = parser.parse_args()
+
     main(args)
