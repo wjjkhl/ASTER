@@ -39,13 +39,11 @@ class BoolQDataset(Dataset):
             print(f"已将分词器的eos_token设置为pad_token: {self.tokenizer.pad_token}")
 
         # 将标签映射添加到类属性
-        # 统一到baseline：使用带前导空格的" yes"/" no"作为标签token（LLaMA分词对空格敏感）
         self.label_to_token = {
             True: self.tokenizer.encode(" yes", add_special_tokens=False)[0],
             False: self.tokenizer.encode(" no", add_special_tokens=False)[0]
         }
 
-        # 仅调整日志打印，明确显示 ' yes' 与 ' no' 对应的token id（不改训练逻辑）
         print(f"标签映射: ' yes'={self.label_to_token[True]}, ' no'={self.label_to_token[False]}")
         print(f"Loaded {len(self.data)} samples from HF boolq/{split} via {os.environ.get('HF_ENDPOINT')}")
 
@@ -55,14 +53,12 @@ class BoolQDataset(Dataset):
     def __getitem__(self, idx):
         item = self.data[idx]
 
-        # Extract question, passage, and answer
         question = item["question"]
         passage = item["passage"]
         answer = bool(item["answer"]) if isinstance(item["answer"], (bool, int)) else (str(item["answer"]).lower() == "true")
 
         prompt = f"{passage}\nQuestion: {question}?\nAnswer:"
 
-        # Tokenize
         encoding = self.tokenizer(
             prompt,
             max_length=self.max_length,
@@ -71,14 +67,12 @@ class BoolQDataset(Dataset):
             return_tensors="pt"
         )
 
-        # 存储token ID供模型生成使用
-        # 再次确保标签token与baseline一致（带前导空格）
+
         self.label_to_token = {
             True: self.tokenizer.encode(" yes", add_special_tokens=False)[0],  # " yes"的token ID
             False: self.tokenizer.encode(" no", add_special_tokens=False)[0]  # " no"的token ID
         }
 
-        # 关键修改：使用类别索引（0="no", 1="yes"）而不是token ID作为标签
         label_idx = 1 if answer else 0
 
         return {
@@ -91,18 +85,13 @@ class BoolQDataset(Dataset):
 
 def create_dataloaders(student_model, teacher_model, world_size=1, rank=0):
     """Create train and validation dataloaders with distributed support"""
-    # 使用学生tokenizer
     tokenizer = student_model.tokenizer
-    # 确保分词器有填充令牌
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
-        print(f"在数据加载器中设置了pad_token: {tokenizer.pad_token}")
 
-    # 创建数据集（从HF镜像加载）
     train_dataset = BoolQDataset(tokenizer=tokenizer, split="train")
     val_dataset = BoolQDataset(tokenizer=tokenizer, split="validation")
 
-    # 如果是调试模式，仅对训练集采样，验证集保持完整
     if hasattr(Config, 'DEBUG_MODE') and Config.DEBUG_MODE:
         from torch.utils.data import Subset
         import random
@@ -117,7 +106,6 @@ def create_dataloaders(student_model, teacher_model, world_size=1, rank=0):
 
         print(f"调试模式: 采样 {len(train_dataset)} 训练样本 ({Config.DEBUG_SAMPLE_RATIO * 100:.1f}%), 验证集保持完整: {len(val_dataset)}")
 
-    # 创建数据加载器，根据是否为分布式环境决定是否使用DistributedSampler
     # DataLoader 可复现性设置
     def _worker_init_fn(worker_id):
         base_seed = getattr(Config, 'SEED', 42)
